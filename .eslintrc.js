@@ -25,6 +25,7 @@ module.exports = {
     'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.js'] }],
     'import/prefer-default-export': 'off',
     'react/jsx-props-no-spreading': 'off',
-    'react/prefer-stateless-function': 'off'
+    'react/prefer-stateless-function': 'off',
+    'lines-between-class-members': 'off'
   }
 };

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { Keyboard, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -15,7 +16,7 @@ import {
   Bio,
   ProfileButton,
   ProfileButtonText,
-  ValidationTxt,
+  ValidationTxt
 } from './styles';
 
 import api from '../../services/api';
@@ -23,10 +24,21 @@ import api from '../../services/api';
 Icon.loadFont();
 
 export default class Main extends Component {
+  static navigationOptions = {
+    title: 'Users'
+  };
+
+  static propTypes = {
+    navigation: PropTypes.shape({
+      navigate: PropTypes.func
+    }).isRequired
+  };
   state = {
     newUser: '',
     users: [],
     loading: false,
+    errorMsg: '',
+    error: null
   };
 
   async componentDidMount() {
@@ -37,7 +49,7 @@ export default class Main extends Component {
     }
   }
 
-  componentDidUpdate(_, prevState) {
+  async componentDidUpdate(_, prevState) {
     const { users } = this.state;
 
     if (prevState !== users) {
@@ -49,51 +61,71 @@ export default class Main extends Component {
     const { users, newUser } = this.state;
 
     this.setState({
-      loading: true,
+      loading: true
     });
 
     const response = await api.get(`/users/${newUser}`);
+
+    if (newUser === '') throw new Error('You need to type a user');
+
+    const userExist = users.find(user => user.login === response.data.login);
+    if (userExist) throw new Error('User already added to list.');
 
     const data = {
       name: response.data.name,
       login: response.data.login,
       bio: response.data.bio,
-      avatar: response.data.avatar_url,
+      avatar: response.data.avatar_url
     };
 
-    this.setState({
-      users: [...users, data],
-      newUser: '',
-      loading: false,
-    });
+    try {
+      this.setState({
+        users: [...users, data],
+        newUser: '',
+        loading: false
+      });
+    } catch (error) {
+      this.setState({
+        error: true,
+        errorMsg: error.response ? error.response.data.message : error.message
+      });
+    } finally {
+      this.setState({ loading: false });
+    }
 
     Keyboard.dismiss();
   };
 
+  handleNavigate = user => {
+    const { navigation } = this.props;
+
+    navigation.navigate('User', { user });
+  };
+
   render() {
-    const { newUser, users, loading } = this.state;
+    const { newUser, users, loading, errorMsg, error } = this.state;
 
     return (
       <Container>
         <Form>
           <Input
             autoCorrect={false}
-            autoCapitalize="none"
-            placeholder="Add User"
+            autoCapitalize='none'
+            placeholder='Add User'
             value={newUser}
             onChangeText={text => this.setState({ newUser: text })}
-            returnKeyType="send"
+            returnKeyType='send'
             onSubmitEditing={this.handleAddUser}
           />
           <SubmitButton loading={loading} onPress={this.handleAddUser}>
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color='#fff' />
             ) : (
-              <Icon name="plus" color="#fff" size={20} />
+              <Icon name='plus' color='#fff' size={20} />
             )}
           </SubmitButton>
         </Form>
-        <ValidationTxt>Teste</ValidationTxt>
+        {error && <ValidationTxt>{errorMsg}</ValidationTxt>}
 
         <List
           data={users}
@@ -104,7 +136,7 @@ export default class Main extends Component {
               <Name>{item.name}</Name>
               <Bio>{item.bio}</Bio>
 
-              <ProfileButton onPress={() => {}}>
+              <ProfileButton onPress={() => this.handleNavigate(item)}>
                 <ProfileButtonText>See Profile</ProfileButtonText>
               </ProfileButton>
             </User>
@@ -114,7 +146,3 @@ export default class Main extends Component {
     );
   }
 }
-
-Main.navigationOptions = {
-  title: 'Users',
-};

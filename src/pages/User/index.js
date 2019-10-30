@@ -1,13 +1,74 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
-import { Container } from './styles';
+import api from '../../services/api';
 
-export default function User(props) {
-  console.tron.log(props);
-  return <View />;
+import {
+  Container,
+  Header,
+  Avatar,
+  Name,
+  Bio,
+  Stars,
+  Starred,
+  OwnerAvatar,
+  Info,
+  Title,
+  Author,
+} from './styles';
+
+export default class User extends Component {
+  static propTypes = {
+    navigation: PropTypes.shape({
+      getParam: PropTypes.func,
+    }),
+  };
+  static navigationOptions = ({ navigation }) => ({
+    title: navigation.getParam('user').name,
+  });
+
+  state = {
+    stars: [],
+  };
+
+  async componentDidMount() {
+    const { navigation } = this.props;
+    const user = navigation.getParam('user');
+
+    const response = api.get(`/users/${user.login}/starred`);
+
+    this.setState({
+      stars: response.data,
+    });
+  }
+
+  render() {
+    const { navigation } = this.props;
+    const { stars } = this.state;
+
+    const user = navigation.getParam('user');
+
+    return (
+      <Container>
+        <Header>
+          <Avatar source={{ uri: user.avatar }} />
+          <Name>{user.name}</Name>
+          <Bio>{user.bio}</Bio>
+        </Header>
+        <Stars
+          data={stars}
+          keyExtrator={star => String(star.id)}
+          renderItem={({ item }) => (
+            <Starred>
+              <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
+              <Info>
+                <Title>{item.name}</Title>
+                <Author>{item.owner.login}</Author>
+              </Info>
+            </Starred>
+          )}
+        />
+      </Container>
+    );
+  }
 }
-
-User.navigationOptions = {
-  title: 'User Profile'
-};

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { ActivityIndicator } from 'react-native';
 import PropTypes from 'prop-types';
 
 import api from '../../services/api';
@@ -15,6 +16,7 @@ import {
   Info,
   Title,
   Author,
+  ShowLoading,
 } from './styles';
 
 export default class User extends Component {
@@ -30,20 +32,23 @@ export default class User extends Component {
 
   state = {
     stars: [],
+    loading: false,
   };
 
   async componentDidMount() {
+    const { loading } = this.state;
     const { navigation } = this.props;
     const user = navigation.getParam('user');
 
+    this.setState({ loading: true });
     const response = await api.get(`/users/${user.login}/starred`);
 
-    this.setState({ stars: response.data });
+    this.setState({ stars: response.data, loading: false });
   }
 
   render() {
     const { navigation } = this.props;
-    const { stars } = this.state;
+    const { stars, loading } = this.state;
     console.tron.log('Stars', stars);
 
     const user = navigation.getParam('user');
@@ -55,19 +60,25 @@ export default class User extends Component {
           <Name>{user.name}</Name>
           <Bio>{user.bio}</Bio>
         </Header>
-        <Stars
-          data={stars}
-          keyExtrator={star => String(star.id)}
-          renderItem={({ item }) => (
-            <Starred>
-              <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
-              <Info>
-                <Title>{item.name}</Title>
-                <Author>{item.owner.login}</Author>
-              </Info>
-            </Starred>
-          )}
-        />
+        {loading ? (
+          <ShowLoading>
+            <ActivityIndicator color="#7159c1" size="large" />
+          </ShowLoading>
+        ) : (
+          <Stars
+            data={stars}
+            keyExtrator={star => String(star.id)}
+            renderItem={({ item }) => (
+              <Starred>
+                <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
+                <Info>
+                  <Title>{item.name}</Title>
+                  <Author>{item.owner.login}</Author>
+                </Info>
+              </Starred>
+            )}
+          />
+        )}
       </Container>
     );
   }

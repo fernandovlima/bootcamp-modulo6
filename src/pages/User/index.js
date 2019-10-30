@@ -18,14 +18,15 @@ import {
 } from './styles';
 
 export default class User extends Component {
-  static propTypes = {
-    navigation: PropTypes.shape({
-      getParam: PropTypes.func,
-    }),
-  };
   static navigationOptions = ({ navigation }) => ({
     title: navigation.getParam('user').name,
   });
+
+  static propTypes = {
+    navigation: PropTypes.shape({
+      getParam: PropTypes.func,
+    }).isRequired,
+  };
 
   state = {
     stars: [],
@@ -35,16 +36,15 @@ export default class User extends Component {
     const { navigation } = this.props;
     const user = navigation.getParam('user');
 
-    const response = api.get(`/users/${user.login}/starred`);
+    const response = await api.get(`/users/${user.login}/starred`);
 
-    this.setState({
-      stars: response.data,
-    });
+    this.setState({ stars: response.data });
   }
 
   render() {
     const { navigation } = this.props;
     const { stars } = this.state;
+    console.tron.log('Stars', stars);
 
     const user = navigation.getParam('user');
 

@@ -52,9 +52,9 @@ export const Starred = styled.View`
 `;
 
 export const OwnerAvatar = styled.Image`
-  height: 42px;
-  width: 42px;
-  border-radius: 21px;
+  height: 40px;
+  width: 40px;
+  border-radius: 20px;
   background: #eee;
 `;
 

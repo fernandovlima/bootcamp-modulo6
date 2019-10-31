@@ -16,7 +16,7 @@ import {
   Bio,
   ProfileButton,
   ProfileButtonText,
-  ValidationTxt
+  ValidationTxt,
 } from './styles';
 
 import api from '../../services/api';
@@ -25,20 +25,20 @@ Icon.loadFont();
 
 export default class Main extends Component {
   static navigationOptions = {
-    title: 'Users'
+    title: 'Users',
   };
 
   static propTypes = {
     navigation: PropTypes.shape({
-      navigate: PropTypes.func
-    }).isRequired
+      navigate: PropTypes.func,
+    }).isRequired,
   };
   state = {
     newUser: '',
     users: [],
     loading: false,
     errorMsg: '',
-    error: null
+    error: null,
   };
 
   async componentDidMount() {
@@ -61,7 +61,7 @@ export default class Main extends Component {
     const { users, newUser } = this.state;
 
     this.setState({
-      loading: true
+      loading: true,
     });
 
     const response = await api.get(`/users/${newUser}`);
@@ -75,19 +75,19 @@ export default class Main extends Component {
       name: response.data.name,
       login: response.data.login,
       bio: response.data.bio,
-      avatar: response.data.avatar_url
+      avatar: response.data.avatar_url,
     };
 
     try {
       this.setState({
         users: [...users, data],
         newUser: '',
-        loading: false
+        loading: false,
       });
     } catch (error) {
       this.setState({
         error: true,
-        errorMsg: error.response ? error.response.data.message : error.message
+        errorMsg: error.response ? error.response.data.message : error.message,
       });
     } finally {
       this.setState({ loading: false });
@@ -110,18 +110,18 @@ export default class Main extends Component {
         <Form>
           <Input
             autoCorrect={false}
-            autoCapitalize='none'
-            placeholder='Add User'
+            autoCapitalize="none"
+            placeholder="Add User"
             value={newUser}
             onChangeText={text => this.setState({ newUser: text })}
-            returnKeyType='send'
+            returnKeyType="send"
             onSubmitEditing={this.handleAddUser}
           />
           <SubmitButton loading={loading} onPress={this.handleAddUser}>
             {loading ? (
-              <ActivityIndicator color='#fff' />
+              <ActivityIndicator color="#fff" />
             ) : (
-              <Icon name='plus' color='#fff' size={20} />
+              <Icon name="plus" color="#fff" size={20} />
             )}
           </SubmitButton>
         </Form>

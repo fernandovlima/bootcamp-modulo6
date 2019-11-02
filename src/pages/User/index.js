@@ -27,19 +27,21 @@ export default class User extends Component {
   static propTypes = {
     navigation: PropTypes.shape({
       getParam: PropTypes.func,
+      navigate: PropTypes.func,
     }).isRequired,
   };
 
   state = {
     stars: [],
     loading: false,
-    page: 1,
+    page: 4,
     refreshing: false,
   };
 
   async componentDidMount() {
     const { navigation } = this.props;
     const user = navigation.getParam('user');
+    console.tron.log('navigation', this.props);
 
     this.setState({ loading: true });
     const response = await api.get(`/users/${user.login}/starred`);
@@ -52,14 +54,17 @@ export default class User extends Component {
     const { navigation } = this.props;
     const user = navigation.getParam('user');
 
-    const response = await api.get(
-      `/users/${user.login}/starred?page=${page + 1}`
-    );
-
-    this.setState({
-      stars: [...stars, response.data],
-      page: page + 1,
-    });
+    await api
+      .get(`/users/${user.login}/starred?page=${page + 1}`)
+      .then(resp => {
+        this.setState({
+          stars: stars.concat(resp.data),
+          page: page + 1,
+        });
+      })
+      .catch(error => {
+        console.log(error);
+      });
   };
 
   refreshList = async () => {
@@ -69,6 +74,12 @@ export default class User extends Component {
     const response = await api.get(`/users/${user.login}/starred`);
 
     this.setState({ stars: response.data });
+  };
+
+  handleNavigate = repo => {
+    const { navigation } = this.props;
+
+    navigation.navigate('WebStarred', { repo });
   };
 
   render() {
@@ -92,15 +103,21 @@ export default class User extends Component {
           <Stars
             onRefresh={this.refreshList} // Função dispara quando o usuário arrasta a lista pra baixo
             refreshing={refreshing} // Variável que armazena um estado true/false que representa se a lista está atualizando
-            onEndReachedThreshold={0.2} // Carrega mais itens quando chegar em 20% do fim
+            onEndReachedThreshold={0.5} // Carrega mais itens quando chegar em 20% do fim
             onEndReached={this.loadMore}
             data={stars}
             keyExtrator={star => String(star.id)}
             renderItem={({ item }) => (
               <Starred>
-                <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
+                <OwnerAvatar
+                  source={{
+                    uri: item.owner.avatar_url && item.owner.avatar_url,
+                  }}
+                />
                 <Info>
-                  <Title>{item.name}</Title>
+                  <Title onPress={() => this.handleNavigate(item)}>
+                    {item.name}
+                  </Title>
                   <Author>{item.owner.login}</Author>
                 </Info>
               </Starred>
